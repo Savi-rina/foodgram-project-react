@@ -133,4 +133,5 @@ dmypy.json
 
 # папки со статикой и медиа
 static/
+static/data/
 recipes_media/
