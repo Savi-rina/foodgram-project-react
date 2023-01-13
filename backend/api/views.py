@@ -90,9 +90,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
     
     def action_post_delete(self, pk, serializer_class):
-        user = self.request.user
         recipe = get_object_or_404(Recipe, pk=pk)
-        item = serializer_class.Meta.model.objects.filter(user=user,
+        item = serializer_class.Meta.model.objects.filter(user=self.request.user,
                                                           recipe=recipe)
         
         if self.request.method == 'POST':
