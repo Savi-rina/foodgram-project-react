@@ -30,7 +30,6 @@ class CustomUserViewSet(UserViewSet):
     @action(detail=True, methods=['post', 'delete'],
             permission_classes=[IsAuthenticated])
     def subscribe(self, request, **kwargs):
-        user = request.user
         author_id = self.kwargs.get('id')
         author = get_object_or_404(User, id=author_id)
         
@@ -38,18 +37,17 @@ class CustomUserViewSet(UserViewSet):
             serializer = FollowSerializer(author, data=request.data,
                                           context={"request": request})
             serializer.is_valid(raise_exception=True)
-            Follow.objects.create(user=user, author=author)
+            Follow.objects.create(user=request.user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
         if request.method == 'DELETE':
-            subscription = get_object_or_404(Follow, user=user, author=author)
+            subscription = get_object_or_404(Follow, user=request.user, author=author)
             subscription.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
     
     @action(detail=False, permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
-        user = request.user
-        queryset = User.objects.filter(following__user=user)
+        queryset = User.objects.filter(following__user=request.user)
         pages = self.paginate_queryset(queryset)
         serializer = FollowSerializer(pages, many=True,
                                       context={'request': request})
@@ -77,7 +75,6 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет рецептов."""
     queryset = Recipe.objects.all()
-    serializer_class = RecipeCreateUpdateSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
     permission_classes = (IsAuthorOrAdminOrReadOnly,)
