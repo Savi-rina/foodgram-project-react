@@ -229,3 +229,4 @@ class ShoppingCartSerializer(FavoriteSerializer):
                                     fields=('user', 'recipe'),
                                     message='Рецепт уже есть в '
                                             'списке покупок')]
+ 
