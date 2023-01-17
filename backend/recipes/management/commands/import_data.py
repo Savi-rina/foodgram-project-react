@@ -1,21 +1,29 @@
-import csv
+import logging
+import os.path
+from csv import DictReader
 
-from django.conf import settings
-from django.core.management.base import BaseCommand
+from django.core.management import BaseCommand
 
 from recipes.models import Ingredient
 
-TABLES_DICT = {Ingredient: 'ingredients.csv'}
+DATA_DIR = 'static/data/'
+DATA_PATCH = {
+    'ingredients': os.path.join(DATA_DIR, 'ingredients.csv'),
+}
+
+logging.getLogger().setLevel(logging.INFO)
 
 
 class Command(BaseCommand):
-    """Загрузка данных из csv файлов."""
-    
-    def handle(self, *args, **kwargs):
-        for model, base in TABLES_DICT.items():
-            with open(f'{settings.BASE_DIR}/static/data/{base}', 'r',
-                      encoding='UTF-8') as csv_file:
-                reader = csv.DictReader(csv_file)
-                model.objects.bulk_create(model(**data) for data in reader)
-        
-        self.stdout.write(self.style.SUCCESS('Данные успешно загружены'))
+    """ Команда для загрузки данных в БД"""
+
+    def handle(self, *args, **options):
+        Ingredient.objects.bulk_create(
+            [Ingredient(id=row['id'], name=row['name'],
+                        measurement_unit=row['measurement_unit'])
+             for row in DictReader(
+                open(DATA_PATCH['ingredients'], encoding='utf-8'))
+             ]
+        )
+
+        logging.info('База Ингредиентов загружена')
